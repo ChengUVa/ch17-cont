@@ -8,7 +8,8 @@ import a2c_model
 import numpy as np
 import torch
 
-ENV_ID = "MinitaurBulletEnv-v0"
+#ENV_ID = "MinitaurBulletEnv-v0"
+ENV_ID = "LunarLanderContinuous-v2"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -17,9 +18,10 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--record", help="If specified, sets the recording dir, default=Disabled")
     args = parser.parse_args()
 
-    spec = gym.envs.registry.spec(args.env)
-    spec._kwargs['render'] = False
+    #spec = gym.envs.registry.spec(args.env)
+    #spec._kwargs['render'] = False
     env = gym.make(args.env)
+    
     if args.record:
         env = gym.wrappers.Monitor(env, args.record)
 
@@ -30,6 +32,7 @@ if __name__ == "__main__":
     total_reward = 0.0
     total_steps = 0
     while True:
+        env.render()
         obs_v = torch.FloatTensor([obs])
         mu_v, var_v, val_v = net(obs_v)
         action = mu_v.squeeze(dim=0).data.numpy()

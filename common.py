@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import ptan
 
-def test_net(net, env, count=10, device="cpu"):
+def test_net(net, env, count=3, device="cpu"):
     rewards = 0.0
     steps = 0
     for _ in range(count):

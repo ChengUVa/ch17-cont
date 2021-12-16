@@ -7,8 +7,9 @@ import torch.nn.functional as F
 HID_SIZE = 200
 
 class ModelA2C(nn.Module):
-    def __init__(self, obs_size, act_size):
+    def __init__(self, obs_size, act_size, val_scale=1.0):
         super().__init__()
+        self.val_scale = val_scale
 
         self.base = nn.Sequential(nn.Linear(obs_size, HID_SIZE), nn.ReLU(),)
 
@@ -25,7 +26,7 @@ class ModelA2C(nn.Module):
 
     def forward(self, x):
         base_out = self.base(x)
-        return self.mu(base_out), self.var(base_out), self.value(base_out)
+        return self.mu(base_out), self.var(base_out), self.value(base_out) * self.val_scale
 
 
 class AgentA2C(ptan.agent.BaseAgent):
