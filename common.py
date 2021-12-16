@@ -2,15 +2,17 @@ import numpy as np
 import torch
 import ptan
 
-def test_net(net, env, count=3, device="cpu"):
+def test_net(net, env, count=3, device="cpu", ddpg=False):
     rewards = 0.0
     steps = 0
     for _ in range(count):
         obs = env.reset()
         while True:
-            obs_v = ptan.agent.float32_preprocessor([obs])
-            obs_v = obs_v.to(device)
-            mu_v = net(obs_v)[0]
+            obs_v = ptan.agent.float32_preprocessor([obs]).to(device)
+            if ddpg:
+                mu_v = net(obs_v)
+            else:
+                mu_v = net(obs_v)[0]
             action = mu_v.squeeze(dim=0).data.cpu().numpy()
             action = np.clip(action, -1, 1)
             obs, reward, done, _ = env.step(action)
@@ -50,3 +52,22 @@ def unpack_batch_a2c(batch, net, last_val_gamma, device="cpu"):
 
     ref_vals_v = torch.FloatTensor(rewards_np).to(device)
     return states_v, actions_v, ref_vals_v
+
+
+def unpack_batch_ddqn(batch, device="cpu"):
+    states, actions, rewards, dones, last_states = [], [], [], [], []
+    for exp in batch:
+        states.append(np.array(exp.state, copy=False))
+        actions.append(exp.action)
+        rewards.append(exp.reward)
+        dones.append(exp.last_state is None)
+        if exp.last_state is None:
+            last_states.append(exp.state) # will be masked
+        else:
+            last_states.append(exp.last_state)
+    states_v = ptan.agent.float32_preprocessor(states).to(device)
+    actions_v = ptan.agent.float32_preprocessor(actions).to(device)
+    rewards_v = ptan.agent.float32_preprocessor(rewards).to(device)
+    last_states_v = ptan.agent.float32_preprocessor(last_states).to(device)
+    dones_t = torch.BoolTensor(dones).to(device)
+    return states_v, actions_v, rewards_v, dones_t, last_states_v
