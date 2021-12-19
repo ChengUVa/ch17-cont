@@ -122,7 +122,7 @@ if __name__ == "__main__":
                 if step_idx % TEST_ITERS == 0:
                     ts = time.time()
                     rewards, steps = common.test_net(
-                        act_net, test_env, device=device, ddpg=True
+                        act_net, test_env, device=device, act_only=True
                     )
                     print(
                         "Test done in %.2f sec, reward %.3f, steps %d"
